@@ -3,45 +3,68 @@ syntax = "proto3";
 package seasonalassignments;
 
 service SeasonalAssignments {
+  rpc GetAllSeasonalAssignments (EmptyRequest) returns (AllSeasonalAssignmentsResponse) {}
   rpc GetSeasonalAssignment (SeasonalAssignmentRequest) returns (SeasonalAssignmentResponse) {}
+  rpc GetDivisionAssignment (DivisionAssignmentRequest) returns (DivisionAssignmentResponse) {}
+}
+
+message EmptyRequest {}
+
+message AllSeasonalAssignmentsResponse {
+  repeated SeasonalAssignmentResponse assignments = 1;
 }
 
 message SeasonalAssignmentRequest {
-  string season = 1;
-  string brandCode = 2;
+  string styleSeasonCode = 1;
+  string companyCode = 2;
+}
+
+message DivisionAssignmentRequest {
+  string styleSeasonCode = 1;
+  string companyCode = 2;
+  string divisionCode = 3;
 }
 
 message SeasonalAssignmentResponse {
-  string createdOn = 1;
-  string modifiedOn = 2;
-  repeated string channels = 3;
-  string brandCode = 4;
-  string brandName = 5;
-  string brand = 6;
-  string styleSeasonCode = 7;
+  string companyCode = 1;
+  string name = 2;
+  string brand = 3;
+  string brandName = 4;
+  string styleSeasonCode = 5;
+  repeated string channels = 6;
+  repeated Division divisions = 7;
   FMS fms = 8;
-  repeated Division divisions = 9;
+  repeated string salesOrganizationCodes = 9;
+  string createdOn = 10;
+  string modifiedOn = 11;
 }
 
-message FMS {
-  FMSCollection fmsCollection = 1;
-  FMSSeason fmsSeason = 2;
-}
-
-message FMSCollection {
-  string code = 1;
+message DivisionAssignmentResponse {
+  string companyCode = 1;
   string name = 2;
-}
-
-message FMSSeason {
-  string code = 1;
-  string name = 2;
-  string year = 3;
+  string brand = 3;
+  string brandName = 4;
+  string styleSeasonCode = 5;
+  repeated string channels = 6;
+  Division division = 7;
+  FMS fms = 8;
+  repeated string salesOrganizationCodes = 9;
+  string createdOn = 10;
+  string modifiedOn = 11;
 }
 
 message Division {
   string name = 1;
-  int32 code = 2;
+  string code = 2;
   bool isActive = 3;
-  map<string, bool> salesOrganizationCode = 4;
+}
+
+message FMS {
+  repeated Season season = 1;
+  string year = 2;
+}
+
+message Season {
+  string code = 1;
+  string name = 2;
 }
