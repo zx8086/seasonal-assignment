@@ -38,8 +38,8 @@ const seasonalData = {
       { name: "TH PPP", code: "08", isActive: false },
       { name: "TH Footwear", code: "09", isActive: true },
       { name: "TH Accessories", code: "10", isActive: true },
-      { name: "TH LLL", code: "11", isActive: false },
-      { name: "TH LLL", code: "11", isActive: false },
+      { name: "TH Tailored", code: "11", isActive: false },
+      { name: "TH Runway", code: "18", isActive: false },
     ],
     fms: {
       season: [
@@ -61,13 +61,13 @@ const seasonalData = {
     channels: ["REFERENCE"],
     divisions: [
       { name: "CK Menswear", code: "61", isActive: true },
-      { name: "CK Jeans", code: "62", isActive: false },
+      { name: "CK Jeans", code: "62", isActive: true },
       { name: "CKJ Kids", code: "64", isActive: true },
       { name: "CK Womenswear", code: "65", isActive: true },
-      { name: "CK Underwear", code: "67", isActive: false },
+      { name: "CK Underwear", code: "67", isActive: true },
       { name: "CK Sport", code: "68", isActive: true },
       { name: "CK Footwear", code: "69", isActive: true },
-      { name: "CK Accessories", code: "70", isActive: false },
+      { name: "CK Accessories", code: "70", isActive: true },
       { name: "CK Swimwear", code: "77", isActive: true },
     ],
     fms: {
@@ -88,10 +88,7 @@ const seasonalData = {
     brandName: "Michael Kors",
     styleSeasonCode: "C51",
     channels: ["REFERENCE"],
-    divisions: [
-      { name: "Michael Kors", code: "91", isActive: false },
-      { name: "IZOD", code: "92", isActive: false },
-    ],
+    divisions: [{ name: "Michael Kors", code: "91", isActive: false }],
     fms: {
       season: [
         { code: "SPSU", name: "Spring /Summer" },
@@ -121,6 +118,25 @@ const seasonalData = {
     salesOrganizationCodes: ["PBE1"],
     createdOn: "2024-02-29 14:50:13.469",
     modifiedOn: "2024-02-29 14:50:13.469",
+  },
+  SEASONAL_ASSIGNMENT_C51_IZEU: {
+    companyCode: "IZEU",
+    name: "IZOD",
+    brand: "MK",
+    brandName: "IZOD",
+    styleSeasonCode: "C51",
+    channels: ["REFERENCE"],
+    divisions: [{ name: "IZOD", code: "92", isActive: false }],
+    fms: {
+      season: [
+        { code: "SPSU", name: "Spring /Summer" },
+        { code: "WISP", name: "Winter /Spring" },
+      ],
+      year: "2025",
+    },
+    salesOrganizationCodes: ["PBE1"],
+    createdOn: "2024-02-29 14:49:13.469",
+    modifiedOn: "2024-02-29 14:49:13.469",
   },
 };
 
