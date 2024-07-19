@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package seasonalassignments;
+
+service SeasonalAssignments {
+  rpc GetSeasonalAssignment (SeasonalAssignmentRequest) returns (SeasonalAssignmentResponse) {}
+}
+
+message SeasonalAssignmentRequest {
+  string season = 1;
+  string brandCode = 2;
+}
+
+message SeasonalAssignmentResponse {
+  string createdOn = 1;
+  string modifiedOn = 2;
+  repeated string channels = 3;
+  string brandCode = 4;
+  string brandName = 5;
+  string brand = 6;
+  string styleSeasonCode = 7;
+  FMS fms = 8;
+  repeated Division divisions = 9;
+}
+
+message FMS {
+  FMSCollection fmsCollection = 1;
+  FMSSeason fmsSeason = 2;
+}
+
+message FMSCollection {
+  string code = 1;
+  string name = 2;
+}
+
+message FMSSeason {
+  string code = 1;
+  string name = 2;
+  string year = 3;
+}
+
+message Division {
+  string name = 1;
+  int32 code = 2;
+  bool isActive = 3;
+  map<string, bool> salesOrganizationCode = 4;
+}
