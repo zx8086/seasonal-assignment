@@ -3,12 +3,14 @@ syntax = "proto3";
 package seasonalassignments;
 
 service SeasonalAssignments {
-  rpc GetAllSeasonalAssignments (EmptyRequest) returns (AllSeasonalAssignmentsResponse) {}
+  rpc GetAllSeasonalAssignments (AllSeasonalAssignmentsRequest) returns (AllSeasonalAssignmentsResponse) {}
   rpc GetSeasonalAssignment (SeasonalAssignmentRequest) returns (SeasonalAssignmentResponse) {}
   rpc GetDivisionAssignment (DivisionAssignmentRequest) returns (DivisionAssignmentResponse) {}
 }
 
-message EmptyRequest {}
+message AllSeasonalAssignmentsRequest {
+  optional bool isActive = 1;
+}
 
 message AllSeasonalAssignmentsResponse {
   repeated SeasonalAssignmentResponse assignments = 1;
@@ -17,6 +19,7 @@ message AllSeasonalAssignmentsResponse {
 message SeasonalAssignmentRequest {
   string styleSeasonCode = 1;
   string companyCode = 2;
+  optional bool isActive = 3;
 }
 
 message DivisionAssignmentRequest {

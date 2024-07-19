@@ -1,8 +1,11 @@
-import path from "path";
-import * as grpc from "@grpc/grpc-js";
-import * as protoLoader from "@grpc/proto-loader";
+const path = require("path");
+const grpc = require("@grpc/grpc-js");
+const protoLoader = require("@grpc/proto-loader");
 
-const PROTO_PATH = path.resolve("../proto/seasonal_assignments.proto");
+const PROTO_PATH = path.resolve(
+  __dirname,
+  "../proto/seasonal_assignments.proto",
+);
 
 const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
   keepCase: true,
@@ -21,25 +24,28 @@ function main() {
     grpc.credentials.createInsecure(),
   );
 
-  // Get all seasonal assignments
-  client.getAllSeasonalAssignments({}, (err, response) => {
+  // Get all active seasonal assignments
+  client.getAllSeasonalAssignments({ isActive: true }, (err, response) => {
     if (err) {
       console.error("Error:", err);
       return;
     }
-    console.log("All Seasonal Assignments:", JSON.stringify(response, null, 2));
+    console.log(
+      "All Active Seasonal Assignments:",
+      JSON.stringify(response, null, 2),
+    );
   });
 
-  // Get seasonal assignment for a specific company and season
+  // Get active seasonal assignment for a specific company and season
   client.getSeasonalAssignment(
-    { styleSeasonCode: "C51", companyCode: "CKEU" },
+    { styleSeasonCode: "C51", companyCode: "CKEU", isActive: true },
     (err, response) => {
       if (err) {
         console.error("Error:", err);
         return;
       }
       console.log(
-        "Seasonal Assignment for CKEU C51:",
+        "Active Seasonal Assignment for CKEU C51:",
         JSON.stringify(response, null, 2),
       );
     },
