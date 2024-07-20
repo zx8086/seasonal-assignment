@@ -31,107 +31,134 @@ async function initCouchbase() {
   return { cluster, collection };
 }
 
-async function getAllSeasonalAssignments(call, callback, collection) {
-  const { isActive } = call.request;
-
-  try {
-    const query = `
-      SELECT RAW seasonalAssignment
-      FROM \`default\`.\`new_model\`.\`seasonal_assignment\` AS seasonalAssignment
-      WHERE META(seasonalAssignment).id LIKE 'SEASONAL_ASSIGNMENT_%'
-    `;
-    const result = await collection.scope.query(query);
-
-    let assignments = result.rows;
-
-    if (isActive !== undefined) {
-      assignments = assignments.map((assignment) => ({
-        ...assignment,
-        divisions: assignment.divisions.filter(
-          (div) => div.isActive === isActive,
-        ),
-      }));
-    }
-
-    callback(null, { assignments });
-  } catch (error) {
-    console.error("Error retrieving assignments:", error);
-    callback({
-      code: grpc.status.INTERNAL,
-      details: "Error retrieving assignments from database",
-    });
+class SeasonalAssignmentsService {
+  constructor(collection) {
+    this.collection = collection;
   }
-}
 
-async function getSeasonalAssignment(call, callback, collection) {
-  const { styleSeasonCode, companyCode, isActive } = call.request;
-  const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
+  async getAllSeasonalAssignments(call, callback) {
+    const { styleSeasonCode, companyCode, isActive } = call.request;
 
-  try {
-    const result = await collection.get(key);
-    let assignment = result.content;
+    try {
+      if (!styleSeasonCode) {
+        throw new Error("styleSeasonCode is required");
+      }
 
-    if (isActive !== undefined) {
-      assignment = {
-        ...assignment,
-        divisions: assignment.divisions.filter(
-          (div) => div.isActive === isActive,
-        ),
-      };
-    }
-    callback(null, assignment);
-  } catch (error) {
-    if (error instanceof couchbase.DocumentNotFoundError) {
-      callback({
-        code: grpc.status.NOT_FOUND,
-        details: "Seasonal assignment not found",
-      });
-    } else {
-      console.error("Error retrieving assignment:", error);
+      let query;
+      let parameters;
+
+      if (companyCode) {
+        // Both styleSeasonCode and companyCode provided
+        const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
+        query = `
+          SELECT RAW seasonalAssignment
+          FROM \`default\`.\`new_model\`.\`seasonal_assignment\` AS seasonalAssignment
+          USE KEYS $1
+        `;
+        parameters = [key];
+      } else {
+        // Only styleSeasonCode provided
+        query = `
+          SELECT RAW seasonalAssignment
+          FROM \`default\`.\`new_model\`.\`seasonal_assignment\` AS seasonalAssignment
+          WHERE META(seasonalAssignment).id LIKE $1
+        `;
+        parameters = [`SEASONAL_ASSIGNMENT_${styleSeasonCode}%`];
+      }
+
+      const result = await this.collection.scope.query(query, { parameters });
+
+      let assignments = result.rows;
+
+      if (isActive !== undefined) {
+        assignments = assignments.map((assignment) => ({
+          ...assignment,
+          divisions: assignment.divisions.filter(
+            (div) => div.isActive === isActive,
+          ),
+        }));
+      }
+
+      callback(null, { assignments });
+    } catch (error) {
+      console.error("Error retrieving assignments:", error);
       callback({
         code: grpc.status.INTERNAL,
-        details: "Error retrieving assignment from database",
+        details: "Error retrieving assignments from database: " + error.message,
       });
     }
   }
-}
 
-async function getDivisionAssignment(call, callback, collection) {
-  const { styleSeasonCode, companyCode, divisionCode } = call.request;
-  const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
+  async getSeasonalAssignment(call, callback) {
+    const { styleSeasonCode, companyCode, isActive } = call.request;
+    const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
 
-  try {
-    const result = await collection.get(key);
-    const assignment = result.content;
+    try {
+      const result = await this.collection.get(key);
+      let assignment = result.content;
 
-    const division = assignment.divisions.find(
-      (div) => div.code === divisionCode,
-    );
-    if (division) {
-      const response = {
-        ...assignment,
-        divisions: undefined,
-        division: division,
-      };
-      callback(null, response);
-    } else {
-      callback({
-        code: grpc.status.NOT_FOUND,
-        details: "Division not found",
-      });
+      if (isActive !== undefined) {
+        assignment = {
+          ...assignment,
+          divisions: assignment.divisions.filter(
+            (div) => div.isActive === isActive,
+          ),
+        };
+      }
+      callback(null, assignment);
+    } catch (error) {
+      if (error instanceof couchbase.DocumentNotFoundError) {
+        callback({
+          code: grpc.status.NOT_FOUND,
+          details: "Seasonal assignment not found",
+        });
+      } else {
+        console.error("Error retrieving assignment:", error);
+        callback({
+          code: grpc.status.INTERNAL,
+          details: "Error retrieving assignment from database",
+        });
+      }
     }
-  } catch (error) {
-    if (error instanceof couchbase.DocumentNotFoundError) {
-      callback({
-        code: grpc.status.NOT_FOUND,
-        details: "Seasonal assignment not found",
-      });
-    } else {
-      console.error("Error retrieving assignment:", error);
-      callback({
-        code: grpc.status.INTERNAL,
-        details: "Error retrieving assignment from database",
-      });
+  }
+
+  async getDivisionAssignment(call, callback) {
+    const { styleSeasonCode, companyCode, divisionCode } = call.request;
+    const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
+
+    try {
+      const result = await this.collection.get(key);
+      const assignment = result.content;
+
+      const division = assignment.divisions.find(
+        (div) => div.code === divisionCode,
+      );
+      if (division) {
+        const response = {
+          ...assignment,
+          divisions: undefined,
+          division: division,
+        };
+        callback(null, response);
+      } else {
+        callback({
+          code: grpc.status.NOT_FOUND,
+          details: "Division not found",
+        });
+      }
+    } catch (error) {
+      if (error instanceof couchbase.DocumentNotFoundError) {
+        callback({
+          code: grpc.status.NOT_FOUND,
+          details: "Seasonal assignment not found",
+        });
+      } else {
+        console.error("Error retrieving assignment:", error);
+        callback({
+          code: grpc.status.INTERNAL,
+          details: "Error retrieving assignment from database",
+        });
+      }
     }
   }
 }
@@ -142,13 +169,12 @@ async function main() {
     console.log("Connected to Couchbase");
 
     const server = new grpc.Server();
+    const service = new SeasonalAssignmentsService(collection);
     server.addService(seasonalAssignments.SeasonalAssignments.service, {
-      getAllSeasonalAssignments: (call, callback) =>
-        getAllSeasonalAssignments(call, callback, collection),
-      getSeasonalAssignment: (call, callback) =>
-        getSeasonalAssignment(call, callback, collection),
-      getDivisionAssignment: (call, callback) =>
-        getDivisionAssignment(call, callback, collection),
+      getAllSeasonalAssignments:
+        service.getAllSeasonalAssignments.bind(service),
+      getSeasonalAssignment: service.getSeasonalAssignment.bind(service),
+      getDivisionAssignment: service.getDivisionAssignment.bind(service),
     });
 
     server.bindAsync(

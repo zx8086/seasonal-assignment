@@ -1,5 +1,4 @@
 syntax = "proto3";
-
 package seasonalassignments;
 
 service SeasonalAssignments {
@@ -9,7 +8,9 @@ service SeasonalAssignments {
 }
 
 message AllSeasonalAssignmentsRequest {
-  optional bool isActive = 1;
+  string styleSeasonCode = 1;
+  optional string companyCode = 2;
+  optional bool isActive = 3;
 }
 
 message AllSeasonalAssignmentsResponse {
@@ -20,12 +21,6 @@ message SeasonalAssignmentRequest {
   string styleSeasonCode = 1;
   string companyCode = 2;
   optional bool isActive = 3;
-}
-
-message DivisionAssignmentRequest {
-  string styleSeasonCode = 1;
-  string companyCode = 2;
-  string divisionCode = 3;
 }
 
 message SeasonalAssignmentResponse {
@@ -40,6 +35,12 @@ message SeasonalAssignmentResponse {
   repeated string salesOrganizationCodes = 9;
   string createdOn = 10;
   string modifiedOn = 11;
+}
+
+message DivisionAssignmentRequest {
+  string styleSeasonCode = 1;
+  string companyCode = 2;
+  string divisionCode = 3;
 }
 
 message DivisionAssignmentResponse {
