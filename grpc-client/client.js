@@ -37,34 +37,34 @@ function main() {
   });
 
   // Get active seasonal assignment for a specific company and season
-  client.getSeasonalAssignment(
-    { styleSeasonCode: "C51", companyCode: "CKEU", isActive: true },
-    (err, response) => {
-      if (err) {
-        console.error("Error:", err);
-        return;
-      }
-      console.log(
-        "Active Seasonal Assignment for CKEU C51:",
-        JSON.stringify(response, null, 2),
-      );
-    },
-  );
+  // client.getSeasonalAssignment(
+  //   { styleSeasonCode: "C51", companyCode: "THEU", isActive: true },
+  //   (err, response) => {
+  //     if (err) {
+  //       console.error("Error:", err);
+  //       return;
+  //     }
+  //     console.log(
+  //       "Active Seasonal Assignment for THEU C51:",
+  //       JSON.stringify(response, null, 2),
+  //     );
+  //   },
+  // );
 
   // Get division assignment for a specific company, season, and division
-  client.getDivisionAssignment(
-    { styleSeasonCode: "C51", companyCode: "CKEU", divisionCode: "61" },
-    (err, response) => {
-      if (err) {
-        console.error("Error:", err);
-        return;
-      }
-      console.log(
-        "Division Assignment for CKEU C51 Division 61:",
-        JSON.stringify(response, null, 2),
-      );
-    },
-  );
+  // client.getDivisionAssignment(
+  //   { styleSeasonCode: "C51", companyCode: "CKEU", divisionCode: "61" },
+  //   (err, response) => {
+  //     if (err) {
+  //       console.error("Error:", err);
+  //       return;
+  //     }
+  //     console.log(
+  //       "Division Assignment for CKEU C51 Division 61:",
+  //       JSON.stringify(response, null, 2),
+  //     );
+  //   },
+  // );
 }
 
 main();
