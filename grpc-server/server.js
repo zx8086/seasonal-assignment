@@ -22,6 +22,26 @@ const packageDefinition = protoLoader.loadSync(PROTO_PATH, {
 const protoDescriptor = grpc.loadPackageDefinition(packageDefinition);
 const seasonalAssignments = protoDescriptor.seasonalassignments;
 
+function logGrpcCall(method, request, code, details = "") {
+  console.log(`[${new Date().toISOString()}] ${method} called`);
+  console.log(`Request: ${JSON.stringify(request)}`);
+  console.log(`Response: ${code}${details ? " - " + details : ""}`);
+  console.log("---");
+}
+
+function loggingInterceptor(call, methodDefinition, callback) {
+  const oldCallback = callback;
+  callback = function (err, res) {
+    if (err) {
+      logGrpcCall(methodDefinition.path, call.request, "ERROR", err.details);
+    } else {
+      logGrpcCall(methodDefinition.path, call.request, "SUCCESS");
+    }
+    oldCallback(err, res);
+  };
+  return null;
+}
+
 async function initCouchbase() {
   const cluster = await couchbase.connect(process.env.COUCHBASE_URL, {
     username: process.env.COUCHBASE_USERNAME,
@@ -39,6 +59,7 @@ class SeasonalAssignmentsService {
   }
 
   async getAllSeasonalAssignments(call, callback) {
+    console.log("getAllSeasonalAssignments called with:", call.request);
     const { styleSeasonCode, companyCode, isActive } = call.request;
 
     try {
@@ -82,8 +103,9 @@ class SeasonalAssignmentsService {
       }
 
       callback(null, { assignments });
+      console.log("getAllSeasonalAssignments completed successfully");
     } catch (error) {
-      console.error("Error retrieving assignments:", error);
+      console.error("Error in getAllSeasonalAssignments:", error);
       callback({
         code: grpc.status.INTERNAL,
         details: "Error retrieving assignments from database: " + error.message,
@@ -92,6 +114,7 @@ class SeasonalAssignmentsService {
   }
 
   async getSeasonalAssignment(call, callback) {
+    console.log("getSeasonalAssignment called with:", call.request);
     const { styleSeasonCode, companyCode, isActive } = call.request;
     const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
 
@@ -108,14 +131,15 @@ class SeasonalAssignmentsService {
         };
       }
       callback(null, assignment);
+      console.log("getSeasonalAssignment completed successfully");
     } catch (error) {
+      console.error("Error in getSeasonalAssignment:", error);
       if (error instanceof couchbase.DocumentNotFoundError) {
         callback({
           code: grpc.status.NOT_FOUND,
           details: "Seasonal assignment not found",
         });
       } else {
-        console.error("Error retrieving assignment:", error);
         callback({
           code: grpc.status.INTERNAL,
           details: "Error retrieving assignment from database",
@@ -125,6 +149,7 @@ class SeasonalAssignmentsService {
   }
 
   async getDivisionAssignment(call, callback) {
+    console.log("getDivisionAssignment called with:", call.request);
     const { styleSeasonCode, companyCode, divisionCode } = call.request;
     const key = `SEASONAL_ASSIGNMENT_${styleSeasonCode}_${companyCode}`;
 
@@ -142,20 +167,22 @@ class SeasonalAssignmentsService {
           division: division,
         };
         callback(null, response);
+        console.log("getDivisionAssignment completed successfully");
       } else {
+        console.log("getDivisionAssignment: Division not found");
         callback({
           code: grpc.status.NOT_FOUND,
           details: "Division not found",
         });
       }
     } catch (error) {
+      console.error("Error in getDivisionAssignment:", error);
       if (error instanceof couchbase.DocumentNotFoundError) {
         callback({
           code: grpc.status.NOT_FOUND,
           details: "Seasonal assignment not found",
         });
       } else {
-        console.error("Error retrieving assignment:", error);
         callback({
           code: grpc.status.INTERNAL,
           details: "Error retrieving assignment from database",
@@ -172,12 +199,16 @@ async function main() {
 
     const server = new grpc.Server();
     const service = new SeasonalAssignmentsService(collection);
-    server.addService(seasonalAssignments.SeasonalAssignments.service, {
-      getAllSeasonalAssignments:
-        service.getAllSeasonalAssignments.bind(service),
-      getSeasonalAssignment: service.getSeasonalAssignment.bind(service),
-      getDivisionAssignment: service.getDivisionAssignment.bind(service),
-    });
+    server.addService(
+      seasonalAssignments.SeasonalAssignments.service,
+      {
+        getAllSeasonalAssignments:
+          service.getAllSeasonalAssignments.bind(service),
+        getSeasonalAssignment: service.getSeasonalAssignment.bind(service),
+        getDivisionAssignment: service.getDivisionAssignment.bind(service),
+      },
+      loggingInterceptor,
+    );
 
     server.bindAsync(
       "0.0.0.0:50051",
