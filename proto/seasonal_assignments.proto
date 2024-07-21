@@ -1,3 +1,5 @@
+// seasonal_assignments.proto
+
 syntax = "proto3";
 package seasonalassignments;
 

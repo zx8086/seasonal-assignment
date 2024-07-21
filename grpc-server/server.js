@@ -1,3 +1,5 @@
+// server.js
+
 require("dotenv").config();
 const couchbase = require("couchbase");
 const path = require("path");
