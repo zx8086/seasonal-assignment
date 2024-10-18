@@ -1,13 +1,15 @@
 // server.js
 
-require("dotenv").config();
-const couchbase = require("couchbase");
-const path = require("path");
-const grpc = require("@grpc/grpc-js");
-const protoLoader = require("@grpc/proto-loader");
+import { config } from "dotenv";
+config();
+
+import * as couchbase from "couchbase";
+import * as path from "path";
+import * as grpc from "@grpc/grpc-js";
+import * as protoLoader from "@grpc/proto-loader";
 
 const PROTO_PATH = path.resolve(
-  __dirname,
+  import.meta.dir,
   "../proto/seasonal_assignments.proto",
 );
 
